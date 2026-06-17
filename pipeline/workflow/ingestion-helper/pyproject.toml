@@ -33,6 +33,7 @@ dependencies = [
     "google-cloud-bigquery",
     "redis",
     "jinja2",
+    "requests",
 ]
 
 [tool.hatch.version]
@@ -43,6 +44,7 @@ bypass-selection = true
 
 [tool.hatch.build.targets.wheel.force-include]
 "clients/schema.sql" = "clients/schema.sql"
+"clients/storage.pb" = "clients/storage.pb"
 
 [dependency-groups]
 dev = [
