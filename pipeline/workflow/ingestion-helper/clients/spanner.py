@@ -47,16 +47,28 @@ class SpannerClient:
                  embedding_table: str = "NodeEmbedding",
                  embedding_index: str = "NodeEmbeddingIndex"):
         """Initializes a Spanner client and connects to a specific database."""
+        client_options = {"api_endpoint": "spanner.googleapis.com"}
+        credentials = None
+        if os.environ.get("SPANNER_EMULATOR_HOST"):
+            from google.auth.credentials import AnonymousCredentials
+
+            class MockAnonymousCredentials(AnonymousCredentials):
+                def with_quota_project(self, quota_project_id):
+                    return self
+
+            credentials = MockAnonymousCredentials()
+        else:
+            client_options["quota_project_id"] = project_id
+
         spanner_client = spanner.Client(
             project=project_id,
-            client_options={
-                'quota_project_id': project_id,
-                'api_endpoint': 'spanner.googleapis.com'
-            },
+            credentials=credentials,
+            client_options=client_options,
             disable_builtin_metrics=True)
         instance = spanner_client.instance(instance_id)
         database = instance.database(database_id)
         logging.info(f"Successfully initialized database: {database.name}")
+        self.spanner_client = spanner_client
         self.database = database
         self.graph_database = database
         if graph_database_id:
@@ -550,7 +562,7 @@ class SpannerClient:
         logging.info(f"Updating DDL for {database_path}")
 
         try:
-            admin_client = DatabaseAdminClient()
+            admin_client = self.spanner_client.database_admin_api
             request = UpdateDatabaseDdlRequest(
                 database=database_path,
                 statements=ddl_statements)

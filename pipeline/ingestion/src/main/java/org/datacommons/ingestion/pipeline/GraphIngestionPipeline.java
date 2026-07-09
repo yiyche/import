@@ -68,6 +68,7 @@ public class GraphIngestionPipeline {
             .timeSeriesTableName(options.getSpannerTimeSeriesTableName())
             .observationTableName(options.getSpannerObservationTableName())
             .numShards(options.getNumShards())
+            .emulatorHost(System.getenv("SPANNER_EMULATOR_HOST"))
             .build();
 
     Pipeline pipeline = Pipeline.create(options);
